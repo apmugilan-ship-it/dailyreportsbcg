@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>South Brooke Daily Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#08245c">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--navy:#092b67;--blue:#174a91;--bg:#f3f6fb;--line:#d8e0ea;--text:#142238;--muted:#64748b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text)}
+.wrap{max-width:1050px;margin:24px auto;padding:0 16px}.top{background:linear-gradient(120deg,#08245c,#174a91);color:white;border-radius:18px;padding:22px 24px;box-shadow:0 8px 24px #173e7820}.top h1{margin:0 0 6px;font-size:24px}.top p{margin:0;color:#dce8ff;font-size:14px}.panel{background:white;border-radius:16px;padding:18px;margin-top:16px;box-shadow:0 4px 18px #18365b0b;border:1px solid #e5ebf3}.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.toolbar input{flex:1;min-width:200px}.input{border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;background:white;color:var(--text)}button{border:0;border-radius:10px;padding:11px 15px;font:600 14px inherit;cursor:pointer;background:var(--navy);color:white}button.secondary{background:#e8eef7;color:#14325e}button.green{background:#087d58}button:hover{filter:brightness(.96)}.tablewrap{overflow:auto;margin-top:14px}table{width:100%;border-collapse:collapse;min-width:700px}th{background:#edf2f8;color:#122544;font-size:14px;text-align:left;padding:12px;border-bottom:1px solid var(--line)}th:not(:first-child),td:not(:first-child){text-align:center}td{padding:10px;border-bottom:1px solid #e9eef4;font-size:15px}td:first-child{font-weight:600}.num{width:90px;max-width:100%;text-align:center;padding:8px;border:1px solid #d9e3ef;border-radius:8px;font-size:15px}.pct{font-weight:700;color:#174a91}.footer{font-size:12px;color:var(--muted);margin-top:12px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.small{font-size:13px;color:var(--muted)}@media(max-width:600px){.wrap{margin:12px auto;padding:0 10px}.top h1{font-size:20px}.panel{padding:12px}.toolbar input{min-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><h1>South Brooke — Daily Performance Tracker</h1><p>Edit the numbers, then export a WhatsApp-ready image.</p></header>
+<section class="panel">
+<div class="toolbar"><input id="reportTitle" class="input" value="South Brooke 17th Nov to 23rd Nov" aria-label="Report title"><button class="secondary" id="reset">Reset sample data</button><button class="secondary" id="install" style="display:none">Install app</button></div>
+<div class="tablewrap"><table id="tracker"><thead><tr><th>Metric</th><th>Target</th><th>Achd</th><th>%</th><th>Today</th></tr></thead><tbody></tbody></table></div>
+<div class="footer">Targets, Achd and Today are editable. Achievement percentage recalculates automatically. This tracker saves in this browser on this device.</div>
+<div class="actions"><button id="download">Export PNG</button><button class="green" id="share">Share image</button><button class="secondary" id="copy">Copy image</button><button class="secondary" id="save">Save updates</button></div>
+<p class="small" id="status"></p>
+</section>
+</div>
+<script>
+const rows=[['Allocation',234,80,29],['Total Site Visit',40,4,2],['Schd',33,2,0],['Walkins',4,2,2],['CP Walkins',3,0,0],['Non Core',null,null,null],['Booking Units',8,3,2],['Booking Value (cr)',4,1.8,1.2],['Revisit',null,null,null]];
+const KEY='southbrooke-tracker-v1';let data=rows.map(r=>({name:r[0],target:r[1],achd:r[2],today:r[3]}));
+function load(){try{let s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.data)){data=s.data;document.getElementById('reportTitle').value=s.title||document.getElementById('reportTitle').value}}catch(e){}}
+function saveState(){localStorage.setItem(KEY,JSON.stringify({data,title:document.getElementById('reportTitle').value}));document.getElementById('status').textContent='Saved on this device.'}
+function fmt(v){if(v===null||v===''||Number.isNaN(Number(v)))return '–';return Number(v).toLocaleString('en-IN',{maximumFractionDigits:2})}
+function percent(a,t){if(t==null||a==null||Number(t)===0)return '–';return Math.round(Number(a)/Number(t)*100)+'%'}
+function render(){let tbody=document.querySelector('#tracker tbody');tbody.innerHTML='';data.forEach((r,i)=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${r.name}</td><td></td><td></td><td class="pct">${percent(r.achd,r.target)}</td><td></td>`;[['target',1],['achd',2],['today',4]].forEach(([key,cell])=>{let td=tr.children[cell];if(r[key]==null){td.textContent='–';return;}let inp=document.createElement('input');inp.className='num';inp.type='number';inp.step='any';inp.value=r[key];inp.setAttribute('aria-label',r.name+' '+key);inp.addEventListener('input',()=>{data[i][key]=inp.value===''?null:Number(inp.value);tr.children[3].textContent=percent(data[i].achd,data[i].target);saveState()});td.appendChild(inp)});tbody.appendChild(tr)});}
+function drawImage(){let title=document.getElementById('reportTitle').value;let canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');let W=1500,pad=48,headH=105,rowH=78,tableTop=165,cols=[530,240,270,180,230],H=tableTop+rowH*(data.length+1)+pad;canvas.width=W;canvas.height=H;
+ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#08245c';ctx.fillRect(0,0,W,headH);ctx.fillStyle='#fff';ctx.font='bold 40px Arial';ctx.textBaseline='middle';ctx.fillText(title,pad,headH/2);
+let headers=['Metric','Target','Achd','%','Today'];let x=pad,y=tableTop;ctx.fillStyle='#edf2f8';ctx.fillRect(pad,y,W-pad*2,rowH);ctx.font='bold 27px Arial';ctx.fillStyle='#142238';headers.forEach((h,j)=>{let xx=x+cols.slice(0,j).reduce((a,b)=>a+b,0);ctx.textAlign=j===0?'left':'center';ctx.fillText(h,j===0?xx+18:xx+cols[j]/2,y+rowH/2)});
+for(let i=0;i<data.length;i++){y=tableTop+rowH*(i+1);ctx.fillStyle=i%2?'#f8fafc':'#fff';ctx.fillRect(pad,y,W-pad*2,rowH);let r=data[i],values=[r.name,fmt(r.target),fmt(r.achd),percent(r.achd,r.target),fmt(r.today)];ctx.font=(i===0?'bold ':'')+'27px Arial';ctx.fillStyle='#142238';values.forEach((v,j)=>{let xx=pad+cols.slice(0,j).reduce((a,b)=>a+b,0);ctx.textAlign=j===0?'left':'center';ctx.fillText(v,j===0?xx+18:xx+cols[j]/2,y+rowH/2)});}
+ctx.strokeStyle='#d4dce7';ctx.lineWidth=2;for(let i=0;i<=data.length+1;i++){let yy=tableTop+i*rowH;ctx.beginPath();ctx.moveTo(pad,yy);ctx.lineTo(W-pad,yy);ctx.stroke()}let xx=pad;cols.forEach(c=>{ctx.beginPath();ctx.moveTo(xx,tableTop);ctx.lineTo(xx,tableTop+rowH*(data.length+1));ctx.stroke();xx+=c});ctx.beginPath();ctx.moveTo(W-pad,tableTop);ctx.lineTo(W-pad,tableTop+rowH*(data.length+1));ctx.stroke();return canvas;}
+function download(){drawImage().toBlob(blob=>{let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='South-Brooke-Tracker.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);document.getElementById('status').textContent='PNG exported.'},'image/png')}
+async function copy(){try{let blob=await new Promise(res=>drawImage().toBlob(res,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);document.getElementById('status').textContent='Image copied to clipboard.'}catch(e){document.getElementById('status').textContent='Clipboard image copy is not supported here. Use Export PNG.'}}
+async function share(){try{let blob=await new Promise(res=>drawImage().toBlob(res,'image/png'));let file=new File([blob],'South-Brooke-Tracker.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'South Brooke Tracker'});}else{download();document.getElementById('status').textContent='Sharing unavailable in this browser; PNG downloaded instead.'}}catch(e){if(e.name!=='AbortError')document.getElementById('status').textContent='Sharing cancelled or unavailable.'}}
+document.getElementById('download').onclick=download;document.getElementById('copy').onclick=copy;document.getElementById('share').onclick=share;document.getElementById('save').onclick=saveState;document.getElementById('reportTitle').addEventListener('input',saveState);document.getElementById('reset').onclick=()=>{if(confirm('Reset to the sample figures shown in the original tracker?')){data=rows.map(r=>({name:r[0],target:r[1],achd:r[2],today:r[3]}));document.getElementById('reportTitle').value='South Brooke 17th Nov to 23rd Nov';localStorage.removeItem(KEY);render();}};
+load();render();
+// PWA install support and offline cache
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+let installPrompt=null; const installBtn=document.getElementById('install');
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;installBtn.style.display='inline-block'});
+installBtn.onclick=async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;installBtn.style.display='none'}};
+</script></body></html>

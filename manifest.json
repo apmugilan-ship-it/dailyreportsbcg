@@ -1,0 +1,13 @@
+{
+  "name": "South Brooke Daily Tracker",
+  "short_name": "South Brooke",
+  "description": "Offline daily performance tracker and WhatsApp report exporter",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6fb",
+  "theme_color": "#08245c",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
